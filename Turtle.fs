@@ -145,6 +145,20 @@ let kochKurve n =
     |> fun cmds -> Turtle.jump (-50.0f, 25.0f) :: cmds
         
 
+let snowFlake n =
+    let d = 50.0f / pown 3.0f n
+    let interp =
+        function
+        | 'F' -> Some <| Turtle.move d
+        | '+' -> Some <| Turtle.turnGrad 60.0f
+        | '-' -> Some <| Turtle.turnGrad -60.0f
+        | _   -> None
+    LSystem.startWith "Y"
+    |> LSystem.addRule 'F' "F+F--F+F"
+    |> LSystem.addRule 'Y' "F+F+F+F+F+F"
+    |> LSystem.execute interp (n+1)
+    |> fun cmds -> Turtle.jump (-25.0f, 42.5f) :: cmds
+
 
 let sierpinski n =
     let d = 100.0f / pown 4.0f n
@@ -210,7 +224,7 @@ module Program =
     let main argv = 
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault false
-        setTurtleProgramm <| plant 8
+        setTurtleProgramm <| snowFlake 5
 
         Application.Run appForm
         0
