@@ -2,7 +2,6 @@
 having some fun with L-System fractals
 
 For a short introduction to L-Systems see the [wikipedia page on it](https://en.wikipedia.org/wiki/L-system).
-The implementation uses string manipulation right now so you might want to improve on that (could take quite some memory for non-small depths).
 
 This little demo uses a simple [turtle-like drawing](https://en.wikipedia.org/wiki/Turtle_graphics) programms to generate those fractals.
 

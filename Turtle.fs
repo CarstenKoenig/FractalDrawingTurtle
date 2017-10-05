@@ -66,29 +66,29 @@ module Turtle =
                 gr.DrawLine (pen, viewX x0, viewY y0, viewX x1, viewY y1)
         }
 
-    let execute (tParams : Params) (cmds : Cmd list) =
-        let rec iter (stack : State list) (state : State) =
+    let execute (tParams : Params) (cmds : Cmd seq) =
+        let foldF (stack : State list, state : State) =
             function
-            | [] -> ()
-            | cmd :: cmds ->
-                match cmd with
-                | Push -> iter (state :: stack) state cmds
-                | Pop  -> 
-                    match stack with
-                    | [] -> iter [] state cmds
-                    | state' :: stack' -> iter stack' state' cmds
-                | Jump (x,y) ->
-                    let state' = { state with x = x; y = y }
-                    iter stack state' cmds
-                | Move d ->
-                    let state' = { state with x = state.x + d * state.dirX; y = state.y + d * state.dirY }
-                    tParams.line (state.x, state.y) (state'.x, state'.y)
-                    iter stack state' cmds
-                | Turn angle ->
-                    let angle' = state.angle + angle
-                    let state' = { state with dirX = cos angle'; dirY = - sin angle'; angle = angle' }
-                    iter stack state' cmds
-        iter [] initState cmds
+            | Push -> (state :: stack, state)
+            | Pop  -> 
+                match stack with
+                | [] -> ([], state)
+                | state' :: stack' -> (stack', state')
+            | Jump (x,y) ->
+                let state' = { state with x = x; y = y }
+                (stack, state')
+            | Move d ->
+                let state' = { state with x = state.x + d * state.dirX; y = state.y + d * state.dirY }
+                tParams.line (state.x, state.y) (state'.x, state'.y)
+                (stack, state')
+            | Turn angle ->
+                let angle' = state.angle + angle
+                let state' = { state with dirX = cos angle'; dirY = - sin angle'; angle = angle' }
+                (stack, state')
+
+        Seq.fold foldF ([], initState) cmds        
+        |> ignore
+
 
 let nGon n =
     let angle = 360.0f / float32 n
@@ -117,19 +117,18 @@ module LSystem =
 
     let private applyRule (sys : LSys) (c : char) =
         match sys.rules.TryFind c with
-        | Some s -> s
-        | None   -> String [|c|]        
+        | Some s -> s :> char seq
+        | None   -> Seq.singleton c        
 
-    let rec private expand (sys : LSys) (depth : int) (state : string) : string =
+    let rec private expand (sys : LSys) (depth : int) (state : char seq) : char seq =
         if depth <= 0 then state else
         state
-        |> String.collect (applyRule sys)
+        |> Seq.collect (applyRule sys)
         |> expand sys (depth-1)
 
     let execute (interpret : char -> Turtle.Cmd option) (depth : int) (sys : LSys) =
         expand sys depth sys.start
         |> Seq.choose interpret
-        |> Seq.toList
 
 let kochKurve n =
     let d = 100.0f / pown 3.0f n
@@ -142,7 +141,7 @@ let kochKurve n =
     LSystem.startWith "F"
     |> LSystem.addRule 'F' "F+F-F-F+F"
     |> LSystem.execute interp n
-    |> fun cmds -> Turtle.jump (-50.0f, 25.0f) :: cmds
+    |> fun cmds -> seq { yield Turtle.jump (-50.0f, 25.0f); yield! cmds }
         
 
 let snowFlake n =
@@ -157,7 +156,7 @@ let snowFlake n =
     |> LSystem.addRule 'F' "F+F--F+F"
     |> LSystem.addRule 'Y' "F+F+F+F+F+F"
     |> LSystem.execute interp (n+1)
-    |> fun cmds -> Turtle.jump (-25.0f, 42.5f) :: cmds
+    |> fun cmds -> seq { yield Turtle.jump (-25.0f, 42.5f); yield! cmds }
 
 
 let sierpinski n =
@@ -173,7 +172,7 @@ let sierpinski n =
     |> LSystem.addRule 'A' "B-A-B"
     |> LSystem.addRule 'B' "A+B+A"
     |> LSystem.execute interp (2*n)
-    |> fun cmds -> Turtle.jump (-50.0f, 49.0f) :: cmds
+    |> fun cmds -> seq { yield Turtle.jump (-50.0f, 49.0f); yield! cmds }
 
 
 let plant n =
@@ -190,12 +189,12 @@ let plant n =
     |> LSystem.addRule 'X' "F[-X][X]F[-X]+FX"
     |> LSystem.addRule 'F' "FF"
     |> LSystem.execute interp n
-    |> fun cmds -> Turtle.jump (-50.0f, 50.0f) :: cmds
+    |> fun cmds -> seq { yield Turtle.jump (-50.0f, 50.0f); yield! cmds }
 
 
 module Program =
 
-    let mutable private turtleCommands : Turtle.Cmd list = []
+    let mutable private turtleCommands : Turtle.Cmd seq = Seq.empty
 
     let private appForm =
         let pen = new Pen(brush = Brushes.Black, width = 1.0f)
@@ -224,7 +223,7 @@ module Program =
     let main argv = 
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault false
-        setTurtleProgramm <| snowFlake 5
+        setTurtleProgramm <| plant 8
 
         Application.Run appForm
         0
