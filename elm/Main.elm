@@ -10,7 +10,7 @@ import Json.Decode as Json
 main : Program Never Model Msg
 main =
     H.beginnerProgram
-        { model = Model 1 [ kochkurve, snowFlake ] kochkurve
+        { model = Model 1 [ kochkurve, snowFlake, sierpinski ] kochkurve
         , update = update
         , view = view
         }
@@ -49,7 +49,10 @@ update msg model =
             model
 
         FractalChanged (Just f) ->
-            { model | selected = f }
+            { model
+                | selected = f
+                , iters = 1
+            }
 
 
 view : Model -> Html Msg

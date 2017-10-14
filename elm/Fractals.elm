@@ -9,6 +9,7 @@ type alias Fractal =
     { name : String
     , lSystem : L.LSys
     , turtleInterpreter : Int -> Char -> Maybe Turtle.Cmd
+    , iterAdjust : Int -> Int
     , turtleStartPos : ( Float, Float )
     }
 
@@ -16,7 +17,7 @@ type alias Fractal =
 genFractal : Fractal -> Int -> Svg svg
 genFractal fractal iters =
     fractal.lSystem
-        |> L.execute (fractal.turtleInterpreter iters) iters
+        |> L.execute (fractal.turtleInterpreter iters) (fractal.iterAdjust iters)
         |> \cmds ->
             Turtle.jump fractal.turtleStartPos
                 :: cmds
@@ -49,7 +50,7 @@ kochkurve =
             L.startWith "F"
                 |> L.addRule 'F' "F+F-F-F+F"
     in
-        Fractal "Kochkurve" rules interpreter ( -50.0, 25.0 )
+        Fractal "Kochkurve" rules interpreter identity ( -50.0, 25.0 )
 
 
 snowFlake : Fractal
@@ -58,7 +59,7 @@ snowFlake =
         interpreter n =
             let
                 d =
-                    100 / 3.0 ^ (toFloat n)
+                    50 / (3.0 ^ toFloat n)
             in
                 \c ->
                     case c of
@@ -79,4 +80,37 @@ snowFlake =
                 |> L.addRule 'F' "F+F--F+F"
                 |> L.addRule 'Y' "F+F+F+F+F+F"
     in
-        Fractal "Schneeflocke" rules interpreter ( -20.0, 30.0 )
+        Fractal "Schneeflocke" rules interpreter (\n -> n + 1) ( -25.0, 42.5 )
+
+
+sierpinski : Fractal
+sierpinski =
+    let
+        interpreter n =
+            let
+                d =
+                    100.0 / (4.0 ^ toFloat n)
+            in
+                \c ->
+                    case c of
+                        'A' ->
+                            Just <| Turtle.move d
+
+                        'B' ->
+                            Just <| Turtle.move d
+
+                        '+' ->
+                            Just <| Turtle.turn 60.0
+
+                        '-' ->
+                            Just <| Turtle.turn -60.0
+
+                        _ ->
+                            Nothing
+
+        rules =
+            L.startWith "A"
+                |> L.addRule 'A' "B-A-B"
+                |> L.addRule 'B' "A+B+A"
+    in
+        Fractal "Sierp. Dreieck" rules interpreter (\n -> n * 2) ( -50.0, 49.0 )
