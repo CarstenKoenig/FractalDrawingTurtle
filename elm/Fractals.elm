@@ -24,6 +24,11 @@ genFractal fractal iters =
                 |> Turtle.runTurtle
 
 
+showFractalRules : Fractal -> List String
+showFractalRules fractal =
+    L.showRules fractal.lSystem
+
+
 kochkurve : Fractal
 kochkurve =
     let

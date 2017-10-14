@@ -64,10 +64,21 @@ view model =
             , H.button [ Ev.onClick IncrIter ] [ H.text "+" ]
             , H.label [] [ H.text <| "Iterations: " ++ toString model.iters ]
             ]
-        , H.div []
+        , H.div
+            []
             [ viewSelect model ]
+        , viewRules model
         , genFractal model.selected model.iters
         ]
+
+
+viewRules : Model -> Html Msg
+viewRules model =
+    H.ul []
+        (model.selected
+            |> showFractalRules
+            |> List.map (H.text >> List.singleton >> H.li [])
+        )
 
 
 viewSelect : Model -> Html Msg

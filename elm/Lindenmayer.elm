@@ -1,4 +1,4 @@
-module Lindenmayer exposing (LSys, startWith, addRule, execute)
+module Lindenmayer exposing (LSys, startWith, addRule, execute, showRules)
 
 import Dict exposing (Dict)
 
@@ -7,6 +7,15 @@ type alias LSys =
     { start : List Char
     , rules : Dict Char (List Char)
     }
+
+
+showRules : LSys -> List String
+showRules lsys =
+    ("Start: " ++ String.fromList lsys.start)
+        :: (lsys.rules
+                |> Dict.toList
+                |> List.map (\( c, cs ) -> String.fromChar c ++ " -> " ++ String.fromList cs)
+           )
 
 
 startWith : String -> LSys
