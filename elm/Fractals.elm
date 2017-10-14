@@ -6,7 +6,8 @@ import Lindenmayer as L
 
 
 type alias Fractal =
-    { lSystem : L.LSys
+    { name : String
+    , lSystem : L.LSys
     , turtleInterpreter : Int -> Char -> Maybe Turtle.Cmd
     , turtleStartPos : ( Float, Float )
     }
@@ -48,4 +49,34 @@ kochkurve =
             L.startWith "F"
                 |> L.addRule 'F' "F+F-F-F+F"
     in
-        Fractal rules interpreter ( -50.0, 25.0 )
+        Fractal "Kochkurve" rules interpreter ( -50.0, 25.0 )
+
+
+snowFlake : Fractal
+snowFlake =
+    let
+        interpreter n =
+            let
+                d =
+                    100 / 3.0 ^ (toFloat n)
+            in
+                \c ->
+                    case c of
+                        'F' ->
+                            Just <| Turtle.move d
+
+                        '+' ->
+                            Just <| Turtle.turn 60.0
+
+                        '-' ->
+                            Just <| Turtle.turn -60.0
+
+                        _ ->
+                            Nothing
+
+        rules =
+            L.startWith "Y"
+                |> L.addRule 'F' "F+F--F+F"
+                |> L.addRule 'Y' "F+F+F+F+F+F"
+    in
+        Fractal "Schneeflocke" rules interpreter ( -20.0, 30.0 )
