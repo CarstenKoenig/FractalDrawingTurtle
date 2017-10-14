@@ -24,6 +24,13 @@ genFractal fractal iters =
                 |> Turtle.runTurtle
 
 
+genText : Fractal -> Int -> String
+genText fractal iters =
+    fractal.lSystem
+        |> L.execute (String.fromChar >> Just) (fractal.iterAdjust iters)
+        |> String.concat
+
+
 showFractalRules : Fractal -> List String
 showFractalRules fractal =
     L.showRules fractal.lSystem

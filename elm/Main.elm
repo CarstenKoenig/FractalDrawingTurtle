@@ -12,6 +12,7 @@ main =
             Model 1
                 [ kochkurve, snowFlake, sierpinski, farn ]
                 kochkurve
+                Image
         , update = update
         , view = view
         }
@@ -21,13 +22,20 @@ type alias Model =
     { iters : Int
     , fractals : List Fractal
     , selected : Fractal
+    , display : Display
     }
+
+
+type Display
+    = Image
+    | Text
 
 
 type Msg
     = IncrIter
     | DecrIter
     | FractalChanged (Maybe Fractal)
+    | ToggleDisplay Display
 
 
 findFractal : List Fractal -> String -> Maybe Fractal
@@ -55,12 +63,16 @@ update msg model =
                 , iters = 1
             }
 
+        ToggleDisplay display ->
+            { model | display = display }
+
 
 view : Model -> Html Msg
 view model =
     H.div []
         [ H.div []
-            [ H.button [ Ev.onClick DecrIter ] [ H.text "-" ]
+            [ viewDisplayToggle model
+            , H.button [ Ev.onClick DecrIter ] [ H.text "-" ]
             , H.button [ Ev.onClick IncrIter ] [ H.text "+" ]
             , H.label [] [ H.text <| "Iterations: " ++ toString model.iters ]
             ]
@@ -68,8 +80,29 @@ view model =
             []
             [ viewSelect model ]
         , viewRules model
-        , genFractal model.selected model.iters
+        , viewFractal model
         ]
+
+
+viewDisplayToggle : Model -> Html Msg
+viewDisplayToggle model =
+    case model.display of
+        Image ->
+            H.button [ Ev.onClick <| ToggleDisplay Text ] [ H.text " -> text " ]
+
+        Text ->
+            H.button [ Ev.onClick <| ToggleDisplay Image ] [ H.text " -> img " ]
+
+
+viewFractal : Model -> Html Msg
+viewFractal model =
+    case model.display of
+        Image ->
+            genFractal model.selected model.iters
+
+        Text ->
+            genText model.selected model.iters
+                |> (H.text >> List.singleton >> H.p [])
 
 
 viewRules : Model -> Html Msg
