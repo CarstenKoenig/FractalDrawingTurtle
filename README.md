@@ -14,10 +14,6 @@ setTurtleProgramm <| plant 8
 
 line at the end of the file.
 
-## Demo
-
-[click here](Fractal.html)
-
 ## Setup/Run
 
 On a *nix machine with mono installed you can just run it using
