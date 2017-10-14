@@ -16,10 +16,23 @@ line at the end of the file.
 
 ## Setup/Run
 
-On a *nix machine with mono installed you can just run it using
+### F#
+
+On a *nix machine with mono/F# installed you can just run it using
 
     chmod +x run.sh
     ./run.sh
+
+
+### Elm
+With Elm installed just
+
+    cd elm
+    elm make --yes
+    elm make Main.elm
+
+then just open the generated `index.html` in your favorite browser
+
 
 ## Examples
 
