@@ -2,15 +2,16 @@ module Main exposing (..)
 
 import Fractals exposing (..)
 import Html as H exposing (Html, Attribute)
-import Html.Attributes as Attr
 import Html.Events as Ev
-import Json.Decode as Json
 
 
 main : Program Never Model Msg
 main =
     H.beginnerProgram
-        { model = Model 1 [ kochkurve, snowFlake, sierpinski ] kochkurve
+        { model =
+            Model 1
+                [ kochkurve, snowFlake, sierpinski, farn ]
+                kochkurve
         , update = update
         , view = view
         }

@@ -114,3 +114,39 @@ sierpinski =
                 |> L.addRule 'B' "A+B+A"
     in
         Fractal "Sierp. Dreieck" rules interpreter (\n -> n * 2) ( -50.0, 49.0 )
+
+
+farn : Fractal
+farn =
+    let
+        interpreter n =
+            let
+                d =
+                    100.0 / (2.3 ^ toFloat n)
+            in
+                \c ->
+                    case c of
+                        'F' ->
+                            Just <| Turtle.move d
+
+                        '+' ->
+                            Just <| Turtle.turn -25.0
+
+                        '-' ->
+                            Just <| Turtle.turn 25.0
+
+                        '[' ->
+                            Just <| Turtle.push
+
+                        ']' ->
+                            Just <| Turtle.pop
+
+                        _ ->
+                            Nothing
+
+        rules =
+            L.startWith "--X"
+                |> L.addRule 'X' "F[-X][X]F[-X]+FX"
+                |> L.addRule 'F' "FF"
+    in
+        Fractal "Farn" rules interpreter identity ( -50.0, 50.0 )
