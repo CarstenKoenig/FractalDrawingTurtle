@@ -77,41 +77,48 @@ runTurtle cmds =
 
 runCmds : ( List State, State ) -> List Cmd -> ( List (Svg svg), ( List State, State ) )
 runCmds state cmds =
+    runCmdsAcc state cmds []
+
+
+runCmdsAcc : ( List State, State ) -> List Cmd -> List (Svg svg) -> ( List (Svg svg), ( List State, State ) )
+runCmdsAcc state cmds accSvg =
     case cmds of
         [] ->
-            ( [], state )
+            ( List.reverse accSvg, state )
 
         cmd :: cmds ->
             let
                 ( out, state2 ) =
                     runCmd state cmd
-
-                ( outs, state3 ) =
-                    runCmds state2 cmds
             in
-                ( out ++ outs, state3 )
+                case out of
+                    Just someSvg ->
+                        runCmdsAcc state2 cmds (someSvg :: accSvg)
+
+                    Nothing ->
+                        runCmdsAcc state2 cmds accSvg
 
 
-runCmd : ( List State, State ) -> Cmd -> ( List (Svg svg), ( List State, State ) )
+runCmd : ( List State, State ) -> Cmd -> ( Maybe (Svg svg), ( List State, State ) )
 runCmd ( stack, state ) cmd =
     case cmd of
         Push ->
-            ( [], ( state :: stack, state ) )
+            ( Nothing, ( state :: stack, state ) )
 
         Pop ->
             case stack of
                 [] ->
-                    ( [], ( stack, state ) )
+                    ( Nothing, ( stack, state ) )
 
                 state2 :: stack2 ->
-                    ( [], ( stack2, state2 ) )
+                    ( Nothing, ( stack2, state2 ) )
 
         Jump ( x, y ) ->
             let
                 state2 =
                     { state | x = x, y = y }
             in
-                ( [], ( stack, state2 ) )
+                ( Nothing, ( stack, state2 ) )
 
         Move d ->
             let
@@ -121,7 +128,8 @@ runCmd ( stack, state ) cmd =
                         , y = state.y + d * state.dirY
                     }
             in
-                ( [ line
+                ( Just <|
+                    line
                         [ x1 (toString state.x)
                         , y1 (toString state.y)
                         , x2 (toString state2.x)
@@ -130,7 +138,6 @@ runCmd ( stack, state ) cmd =
                         , strokeWidth "0.1"
                         ]
                         []
-                  ]
                 , ( stack, state2 )
                 )
 
@@ -146,4 +153,4 @@ runCmd ( stack, state ) cmd =
                         , angle = angle2
                     }
             in
-                ( [], ( stack, state2 ) )
+                ( Nothing, ( stack, state2 ) )
