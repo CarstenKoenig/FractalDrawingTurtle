@@ -1,36 +1,46 @@
 module Main exposing (..)
 
-import Svg exposing (Svg)
-import Turtle
-import Lindenmayer as L
+import Fractals exposing (..)
+import Html as H exposing (Html)
+import Html.Events as Ev
 
 
-main : Svg svg
+main : Program Never Model Msg
 main =
-    Turtle.runTurtle (kochkurve 4)
+    H.beginnerProgram
+        { model = Model 1 kochkurve
+        , update = update
+        , view = view
+        }
 
 
-kochkurve : Int -> List Turtle.Cmd
-kochkurve n =
-    let
-        d =
-            100.0 / (3.0 ^ toFloat n)
+type alias Model =
+    { iters : Int
+    , fractal : Fractal
+    }
 
-        interp c =
-            case c of
-                'F' ->
-                    Just <| Turtle.move d
 
-                '+' ->
-                    Just <| Turtle.turn 90.0
+type Msg
+    = IncrIter
+    | DecrIter
 
-                '-' ->
-                    Just <| Turtle.turn -90.0
 
-                _ ->
-                    Nothing
-    in
-        L.startWith "F"
-            |> L.addRule 'F' "F+F-F-F+F"
-            |> L.execute interp n
-            |> \cmds -> Turtle.jump ( -50.0, 25.0 ) :: cmds
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        IncrIter ->
+            { model | iters = model.iters + 1 }
+
+        DecrIter ->
+            { model | iters = model.iters - 1 }
+
+
+view : Model -> Html Msg
+view model =
+    H.div []
+        [ H.div []
+            [ H.button [ Ev.onClick DecrIter ] [ H.text "-" ]
+            , H.button [ Ev.onClick IncrIter ] [ H.text "+" ]
+            ]
+        , genFractal model.fractal model.iters
+        ]
